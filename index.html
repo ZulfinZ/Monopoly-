@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0E3B2E">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="apple-touch-icon" href="./apple-touch-icon.png">
+<link rel="icon" href="./icon-192.png">
+<title>הבנק — מונופול</title>
+<style>
+:root{
+  --felt:#0E3B2E; --felt2:#15493A; --felt3:#1D5C49;
+  --paper:#F5F0E4; --paper2:#E9E2D0;
+  --ink:#0F241C; --ink2:#4A5F55;
+  --red:#C8443A; --gold:#E3B23C; --money:#5FB98A;
+  --line:rgba(245,240,228,.16);
+  --r:14px;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0; background:var(--felt); color:var(--paper);
+  font-family:-apple-system,BlinkMacSystemFont,"SF Hebrew","Heebo",system-ui,"Segoe UI",Arial,sans-serif;
+  font-size:16px; line-height:1.5; touch-action:manipulation;
+  padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  -webkit-user-select:none; user-select:none;
+}
+.wrap{max-width:480px;margin:0 auto;padding:12px 14px 28px}
+.num{font-variant-numeric:tabular-nums;direction:ltr;unicode-bidi:isolate}
+
+header{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;padding:10px 2px 14px}
+h1{margin:0;font-size:26px;font-weight:800;letter-spacing:-.5px}
+.sub{margin:2px 0 0;font-size:13px;color:rgba(245,240,228,.6)}
+.hbtns{display:flex;gap:8px}
+
+button{font-family:inherit;font-size:15px;color:var(--paper);background:transparent;
+  border:1px solid var(--line);border-radius:var(--r);padding:10px 14px;min-height:44px;cursor:pointer}
+button:active{transform:scale(.98)}
+button:disabled{opacity:.35}
+.icon{padding:10px 12px;font-size:13px;line-height:1.2}
+.primary{background:var(--gold);color:#3A2A05;border-color:var(--gold);font-weight:700}
+.danger{background:var(--red);color:#fff;border-color:var(--red);font-weight:700}
+.ghost{background:rgba(245,240,228,.07)}
+:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+
+.banner{background:rgba(227,178,60,.14);border:1px solid rgba(227,178,60,.45);border-radius:var(--r);
+  padding:11px 13px;font-size:13.5px;color:#F3DFAF;margin-bottom:12px;display:flex;gap:10px;align-items:center;justify-content:space-between}
+.banner b{color:var(--gold)}
+
+.card{background:var(--paper);color:var(--ink);border-radius:var(--r);overflow:hidden;margin-bottom:10px;
+  display:flex;align-items:stretch;min-height:70px}
+.band{width:10px;flex:0 0 10px}
+.cbody{flex:1;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 14px;min-width:0}
+.pname{font-size:17px;font-weight:700;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pmeta{margin:1px 0 0;font-size:12.5px;color:var(--ink2)}
+.pbal{font-size:22px;font-weight:800;margin:0;white-space:nowrap}
+.pbal.neg{color:var(--red)}
+.paybtn{background:var(--ink);color:var(--paper);border-color:var(--ink);font-size:13px;padding:9px 12px;min-height:40px;border-radius:10px}
+
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:14px 0 10px}
+.actions button{min-height:52px;font-size:16px;font-weight:600}
+.big{background:var(--money);color:#08281B;border-color:var(--money)}
+
+.lastrow{display:flex;align-items:center;justify-content:space-between;gap:10px;
+  border-top:1px solid var(--line);margin-top:8px;padding-top:12px;font-size:13.5px;color:rgba(245,240,228,.72)}
+.lastrow span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+h2{font-size:14px;font-weight:700;color:rgba(245,240,228,.55);margin:22px 0 8px;letter-spacing:.3px}
+.log{list-style:none;margin:0;padding:0;font-size:14px}
+.log li{display:flex;justify-content:space-between;gap:10px;padding:9px 2px;border-bottom:1px solid var(--line);color:rgba(245,240,228,.85)}
+.log li span:last-child{color:rgba(245,240,228,.5);font-size:12.5px;white-space:nowrap}
+.empty{color:rgba(245,240,228,.45);font-size:14px;padding:14px 2px}
+
+.sheet{position:fixed;inset:0;background:rgba(6,24,18,.72);display:none;align-items:flex-end;justify-content:center;z-index:50}
+.sheet.on{display:flex}
+.panel{background:var(--felt2);width:100%;max-width:480px;max-height:92vh;overflow-y:auto;
+  border-radius:20px 20px 0 0;padding:18px 16px calc(20px + env(safe-area-inset-bottom));border-top:1px solid var(--line)}
+.phead{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.phead h3{margin:0;font-size:19px;font-weight:800}
+.close{border:none;background:rgba(245,240,228,.1);border-radius:50%;width:36px;height:36px;min-height:36px;padding:0;font-size:18px}
+.label{font-size:13px;color:rgba(245,240,228,.6);margin:14px 0 7px;font-weight:600}
+.chips{display:flex;flex-wrap:wrap;gap:7px}
+.chip{border:1px solid var(--line);background:rgba(245,240,228,.05);border-radius:999px;
+  padding:9px 14px;min-height:42px;font-size:14.5px}
+.chip.sel{background:var(--gold);color:#3A2A05;border-color:var(--gold);font-weight:700}
+.chip.bank{border-style:dashed}
+input[type=text],input[type=number]{width:100%;font-family:inherit;font-size:17px;color:var(--paper);
+  background:rgba(245,240,228,.07);border:1px solid var(--line);border-radius:12px;padding:12px 14px;min-height:48px}
+input::placeholder{color:rgba(245,240,228,.35)}
+.row{display:flex;gap:8px}
+.row input{flex:1}
+.amt{background:var(--paper);color:var(--ink);border-radius:12px;padding:14px;text-align:center;
+  font-size:34px;font-weight:800;margin:10px 0}
+.pad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.pad button{min-height:54px;font-size:22px;font-weight:600;background:rgba(245,240,228,.07)}
+.warn{background:rgba(200,68,58,.16);border:1px solid rgba(200,68,58,.5);color:#F2B6B1;
+  border-radius:12px;padding:12px 13px;font-size:14px;margin-bottom:6px}
+.note{font-size:12.5px;color:rgba(245,240,228,.5);margin-top:10px;line-height:1.6}
+textarea{width:100%;height:130px;font-family:ui-monospace,Menlo,monospace;font-size:12px;
+  background:rgba(0,0,0,.25);color:var(--paper);border:1px solid var(--line);border-radius:12px;padding:10px;
+  -webkit-user-select:text;user-select:text}
+.stack>button{width:100%;margin-bottom:9px;min-height:50px;font-size:16px}
+.hidden{display:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div>
+      <h1>הבנק</h1>
+      <p class="sub" id="sub">אין משחק פעיל</p>
+    </div>
+    <div class="hbtns">
+      <button class="icon ghost" id="btnFiles">קובץ</button>
+      <button class="icon ghost" id="btnNew">משחק חדש</button>
+    </div>
+  </header>
+
+  <div class="banner hidden" id="saveBanner">
+    <span id="saveBannerText"></span>
+    <button class="icon primary" id="btnQuickSave">שמור</button>
+  </div>
+
+  <div id="players"></div>
+
+  <div class="actions" id="mainActions">
+    <button class="big" id="btnTransfer">העברת כסף</button>
+    <button class="ghost" id="btnGo">‎200 בהתחלה</button>
+  </div>
+
+  <div class="lastrow" id="lastRow">
+    <span id="lastText">עדיין לא בוצעו פעולות</span>
+    <button class="icon" id="btnUndo" disabled>בטל</button>
+  </div>
+
+  <h2>היסטוריה</h2>
+  <ul class="log" id="log"></ul>
+
+</div>
+
+<div class="sheet" id="sheetNew"><div class="panel">
+  <div class="phead"><h3>משחק חדש</h3><button class="close" data-close aria-label="סגור">✕</button></div>
+  <div class="warn hidden" id="newWarn">יש משחק פעיל. התחלת משחק חדש תמחק את היתרות וההיסטוריה. שמור לקובץ קודם אם חשוב לך לשמור אותו.</div>
+  <p class="label">סכום התחלתי לכל שחקן</p>
+  <div class="chips" id="startChips"></div>
+  <div style="margin-top:8px"><input type="number" id="startAmt" inputmode="numeric" value="1500"></div>
+  <p class="label">שחקנים <span id="selCount"></span></p>
+  <div class="chips" id="rosterChips"></div>
+  <div class="row" style="margin-top:9px">
+    <input type="text" id="newName" placeholder="שם חדש" autocomplete="off">
+    <button class="ghost" id="btnAddName">הוסף</button>
+  </div>
+  <div style="margin-top:18px" class="stack">
+    <button class="primary" id="btnStart">התחל משחק</button>
+  </div>
+  <p class="note">שמות נשמרים לבחירה מהירה בפעם הבאה.</p>
+</div></div>
+
+<div class="sheet" id="sheetTransfer"><div class="panel">
+  <div class="phead"><h3>העברת כסף</h3><button class="close" data-close aria-label="סגור">✕</button></div>
+  <p class="label">משלם</p>
+  <div class="chips" id="fromChips"></div>
+  <p class="label">מקבל</p>
+  <div class="chips" id="toChips"></div>
+  <div class="amt num" id="amtDisplay">0</div>
+  <div class="chips" id="quickAmts"></div>
+  <div class="pad" style="margin-top:9px" id="pad"></div>
+  <div class="warn hidden" id="txWarn"></div>
+  <div style="margin-top:14px" class="stack">
+    <button class="primary" id="btnConfirmTx">אשר העברה</button>
+  </div>
+</div></div>
+
+<div class="sheet" id="sheetGo"><div class="panel">
+  <div class="phead"><h3>‎200 בהתחלה</h3><button class="close" data-close aria-label="סגור">✕</button></div>
+  <p class="label">מי עבר במשבצת התחלה?</p>
+  <div class="chips" id="goChips"></div>
+  <p class="note">לחיצה על שם מזכה אותו מיד ב־200 מהבנק.</p>
+</div></div>
+
+<div class="sheet" id="sheetFiles"><div class="panel">
+  <div class="phead"><h3>שמירה וטעינה</h3><button class="close" data-close aria-label="סגור">✕</button></div>
+  <div class="stack">
+    <button class="primary" id="btnSaveFile">שמור לקובץ</button>
+    <button class="ghost" id="btnLoadFile">טען מקובץ</button>
+  </div>
+  <input type="file" id="fileInput" accept=".json,application/json" class="hidden">
+  <p class="label">גיבוי טקסט</p>
+  <textarea id="jsonBox" readonly></textarea>
+  <div class="row" style="margin-top:9px">
+    <button class="ghost" id="btnCopy" style="flex:1">העתק</button>
+    <button class="ghost" id="btnPaste" style="flex:1">הדבק וטען</button>
+  </div>
+  <p class="note" id="storeNote"></p>
+</div></div>
+
+<script>
+(function(){
+"use strict";
+
+var COLORS=["#8B5A2B","#7FD1F0","#D93A96","#F7941D","#ED1B24","#E8D31A","#1FB25A","#1E6FBF"];
+var BANK="BANK";
+var LSKEY="monopoly-banker-v1";
+
+var store=(function(){try{var k="__t";localStorage.setItem(k,"1");localStorage.removeItem(k);return localStorage}catch(e){return null}})();
+
+var S={game:null,roster:[],dirty:false};
+var draft={from:null,to:null,amount:0};
+
+function fmt(n){return "₪"+Math.round(n).toLocaleString("he-IL")}
+function uid(){return Math.random().toString(36).slice(2,9)}
+function byId(id){return document.getElementById(id)}
+function pl(id){if(id===BANK)return null;var g=S.game;for(var i=0;i<g.players.length;i++)if(g.players[i].id===id)return g.players[i];return null}
+function nameOf(id){if(id===BANK)return "הבנק";var p=pl(id);return p?p.name:"—"}
+
+function persist(){
+  if(store){try{store.setItem(LSKEY,JSON.stringify({roster:S.roster,game:S.game}))}catch(e){}}
+  S.dirty=true; renderBanner();
+}
+function restore(){
+  if(!store)return;
+  try{var d=JSON.parse(store.getItem(LSKEY)||"null");if(d){S.roster=d.roster||[];S.game=d.game||null;S.dirty=false}}catch(e){}
+}
+
+function apply(tx,dir){
+  var a=tx.amount*dir, f=pl(tx.from), t=pl(tx.to);
+  if(f)f.balance-=a;
+  if(t)t.balance+=a;
+}
+function addTx(from,to,amount,kind){
+  var tx={id:uid(),from:from,to:to,amount:amount,kind:kind||"transfer",ts:Date.now()};
+  apply(tx,1);
+  S.game.history.push(tx);
+  S.game.undoUsed=false;
+  persist(); render();
+}
+function undoLast(){
+  var h=S.game.history;
+  if(!h.length||S.game.undoUsed)return;
+  var tx=h[h.length-1];
+  apply(tx,-1);
+  h.pop();
+  S.game.undoUsed=true;
+  persist(); render();
+}
+
+function startGame(names,amount){
+  S.game={
+    started:Date.now(), start:amount, undoUsed:true,
+    players:names.map(function(n,i){return {id:uid(),name:n,balance:amount,color:COLORS[i%COLORS.length]}}),
+    history:[]
+  };
+  names.forEach(function(n){if(S.roster.indexOf(n)<0)S.roster.push(n)});
+  persist(); render();
+}
+
+function render(){
+  var g=S.game, box=byId("players");
+  byId("mainActions").style.display=g?"grid":"none";
+  byId("lastRow").style.display=g?"flex":"none";
+  if(!g){
+    byId("sub").textContent="אין משחק פעיל";
+    box.innerHTML='<p class="empty">התחל משחק חדש כדי לנהל יתרות.</p>';
+    byId("log").innerHTML="";
+    renderBanner(); return;
+  }
+  byId("sub").textContent=g.players.length+" שחקנים · "+g.history.length+" פעולות";
+  box.innerHTML="";
+  g.players.forEach(function(p){
+    var last=null;
+    for(var i=g.history.length-1;i>=0;i--){var t=g.history[i];if(t.from===p.id||t.to===p.id){last=t;break}}
+    var meta = last ? (last.to===p.id ? "קיבל "+fmt(last.amount)+" מ"+nameOf(last.from)
+                                       : "שילם "+fmt(last.amount)+" ל"+nameOf(last.to))
+                    : "יתרת פתיחה";
+    var c=document.createElement("div"); c.className="card";
+    c.innerHTML='<div class="band" style="background:'+p.color+'"></div>'+
+      '<div class="cbody"><div style="min-width:0">'+
+      '<p class="pname"></p><p class="pmeta"></p></div>'+
+      '<div style="display:flex;align-items:center;gap:10px">'+
+      '<p class="pbal num'+(p.balance<0?" neg":"")+'"></p>'+
+      '<button class="paybtn">שלם</button></div></div>';
+    c.querySelector(".pname").textContent=p.name;
+    c.querySelector(".pmeta").textContent=meta;
+    c.querySelector(".pbal").textContent=fmt(p.balance);
+    c.querySelector(".paybtn").onclick=function(){openTransfer(p.id)};
+    box.appendChild(c);
+  });
+
+  var lt=byId("lastText"), h=g.history;
+  if(h.length){
+    var t=h[h.length-1];
+    lt.textContent=nameOf(t.from)+" ← "+nameOf(t.to)+" · "+fmt(t.amount);
+  } else lt.textContent="עדיין לא בוצעו פעולות";
+  byId("btnUndo").disabled=!h.length||g.undoUsed;
+
+  var log=byId("log"); log.innerHTML="";
+  h.slice(-25).reverse().forEach(function(t){
+    var li=document.createElement("li");
+    var a=document.createElement("span"), b=document.createElement("span");
+    a.textContent=nameOf(t.from)+" ← "+nameOf(t.to);
+    b.textContent=fmt(t.amount);
+    li.appendChild(a); li.appendChild(b); log.appendChild(li);
+  });
+  if(!h.length) log.innerHTML='<p class="empty">אין פעולות עדיין.</p>';
+  renderBanner();
+}
+
+function renderBanner(){
+  var b=byId("saveBanner"), t=byId("saveBannerText");
+  if(!S.game){b.classList.add("hidden");return}
+  if(!store){
+    b.classList.remove("hidden");
+    t.innerHTML=S.dirty?"<b>לא נשמר לקובץ.</b> סגירת הדף תמחק את המשחק.":"נשמר לקובץ. אפשר לסגור בבטחה.";
+  } else if(S.dirty){
+    b.classList.remove("hidden");
+    t.textContent="נשמר במכשיר. כדאי גם לשמור לקובץ.";
+  } else b.classList.add("hidden");
+}
+
+function openSheet(id){byId(id).classList.add("on")}
+function closeSheets(){var s=document.querySelectorAll(".sheet");for(var i=0;i<s.length;i++)s[i].classList.remove("on")}
+document.addEventListener("click",function(e){
+  if(e.target.hasAttribute("data-close"))closeSheets();
+  if(e.target.classList.contains("sheet"))closeSheets();
+});
+
+var pickedNames=[];
+function openNew(){
+  byId("newWarn").classList.toggle("hidden",!S.game);
+  pickedNames=[];
+  byId("startAmt").value=S.game?S.game.start:1500;
+  renderStartChips(); renderRoster();
+  openSheet("sheetNew");
+}
+function renderStartChips(){
+  var box=byId("startChips"); box.innerHTML="";
+  [1500,2000,2500,5000].forEach(function(v){
+    var b=document.createElement("button"); b.className="chip num"; b.textContent=v.toLocaleString("he-IL");
+    b.onclick=function(){byId("startAmt").value=v};
+    box.appendChild(b);
+  });
+}
+function renderRoster(){
+  var box=byId("rosterChips"); box.innerHTML="";
+  S.roster.forEach(function(n){
+    var b=document.createElement("button");
+    b.className="chip"+(pickedNames.indexOf(n)>=0?" sel":"");
+    b.textContent=n;
+    b.onclick=function(){
+      var i=pickedNames.indexOf(n);
+      if(i>=0)pickedNames.splice(i,1); else pickedNames.push(n);
+      renderRoster();
+    };
+    box.appendChild(b);
+  });
+  if(!S.roster.length)box.innerHTML='<p class="note" style="margin:0">אין שמות שמורים. הוסף שם למטה.</p>';
+  byId("selCount").textContent=pickedNames.length?"("+pickedNames.length+" נבחרו)":"";
+  byId("btnStart").disabled=pickedNames.length<2;
+}
+byId("btnAddName").onclick=function(){
+  var el=byId("newName"), n=el.value.trim();
+  if(!n)return;
+  if(S.roster.indexOf(n)<0)S.roster.push(n);
+  if(pickedNames.indexOf(n)<0)pickedNames.push(n);
+  el.value=""; el.blur(); renderRoster();
+};
+byId("btnStart").onclick=function(){
+  var amt=parseInt(byId("startAmt").value,10);
+  if(!amt||amt<0){byId("startAmt").focus();return}
+  if(pickedNames.length<2)return;
+  startGame(pickedNames.slice(),amt);
+  closeSheets();
+};
+
+function openTransfer(fromId){
+  draft={from:fromId||null,to:null,amount:0};
+  renderTransfer(); openSheet("sheetTransfer");
+}
+function partyChips(boxId,selected,onPick,exclude){
+  var box=byId(boxId); box.innerHTML="";
+  S.game.players.forEach(function(p){
+    if(p.id===exclude)return;
+    var b=document.createElement("button");
+    b.className="chip"+(selected===p.id?" sel":"");
+    b.textContent=p.name; b.onclick=function(){onPick(p.id)};
+    box.appendChild(b);
+  });
+  if(exclude!==BANK){
+    var bk=document.createElement("button");
+    bk.className="chip bank"+(selected===BANK?" sel":"");
+    bk.textContent="הבנק"; bk.onclick=function(){onPick(BANK)};
+    box.appendChild(bk);
+  }
+}
+function renderTransfer(){
+  partyChips("fromChips",draft.from,function(id){draft.from=id;if(draft.to===id)draft.to=null;renderTransfer()},draft.to);
+  partyChips("toChips",draft.to,function(id){draft.to=id;if(draft.from===id)draft.from=null;renderTransfer()},draft.from);
+  byId("amtDisplay").textContent=fmt(draft.amount);
+  var w=byId("txWarn"), ok=draft.from&&draft.to&&draft.amount>0&&draft.from!==draft.to;
+  var f=draft.from?pl(draft.from):null;
+  if(ok&&f&&f.balance<draft.amount){
+    w.classList.remove("hidden");
+    w.textContent="ל"+f.name+" יש רק "+fmt(f.balance)+". אישור ייצור יתרה שלילית.";
+  } else w.classList.add("hidden");
+  byId("btnConfirmTx").disabled=!ok;
+}
+(function buildPad(){
+  var box=byId("pad"), keys=["1","2","3","4","5","6","7","8","9","00","0","⌫"];
+  keys.forEach(function(k){
+    var b=document.createElement("button"); b.className="num"; b.textContent=k;
+    b.onclick=function(){
+      if(k==="⌫")draft.amount=Math.floor(draft.amount/10);
+      else{
+        var s=String(draft.amount)+k;
+        if(s.length<=9)draft.amount=parseInt(s,10)||0;
+      }
+      renderTransfer();
+    };
+    box.appendChild(b);
+  });
+  var q=byId("quickAmts");
+  [50,100,200,500].forEach(function(v){
+    var b=document.createElement("button"); b.className="chip num"; b.textContent="+"+v;
+    b.onclick=function(){draft.amount+=v;renderTransfer()};
+    q.appendChild(b);
+  });
+})();
+byId("btnConfirmTx").onclick=function(){
+  addTx(draft.from,draft.to,draft.amount,"transfer");
+  closeSheets();
+};
+
+byId("btnGo").onclick=function(){
+  var box=byId("goChips"); box.innerHTML="";
+  S.game.players.forEach(function(p){
+    var b=document.createElement("button"); b.className="chip"; b.textContent=p.name;
+    b.onclick=function(){addTx(BANK,p.id,200,"go");closeSheets()};
+    box.appendChild(b);
+  });
+  openSheet("sheetGo");
+};
+byId("btnTransfer").onclick=function(){openTransfer(null)};
+byId("btnNew").onclick=openNew;
+byId("btnUndo").onclick=undoLast;
+
+function payload(){
+  return JSON.stringify({app:"monopoly-banker",version:1,savedAt:new Date().toISOString(),roster:S.roster,game:S.game},null,2);
+}
+function saveFile(){
+  var txt=payload();
+  byId("jsonBox").value=txt;
+  var d=new Date(), stamp=d.getFullYear()+"-"+("0"+(d.getMonth()+1)).slice(-2)+"-"+("0"+d.getDate()).slice(-2)+"-"+("0"+d.getHours()).slice(-2)+("0"+d.getMinutes()).slice(-2);
+  try{
+    var blob=new Blob([txt],{type:"application/json"});
+    var a=document.createElement("a");
+    a.href=URL.createObjectURL(blob);
+    a.download="monopoly-"+stamp+".json";
+    document.body.appendChild(a); a.click();
+    setTimeout(function(){URL.revokeObjectURL(a.href);a.remove()},1500);
+    S.dirty=false; renderBanner();
+  }catch(e){
+    alert("ההורדה נחסמה. העתק את הטקסט מתיבת הגיבוי ושמור אותו בעצמך.");
+    openSheet("sheetFiles");
+  }
+}
+function loadData(txt){
+  var d;
+  try{d=JSON.parse(txt)}catch(e){alert("הקובץ אינו JSON תקין.");return}
+  if(!d||d.app!=="monopoly-banker"){alert("זה לא קובץ שמירה של הבנק.");return}
+  S.roster=d.roster||[]; S.game=d.game||null; S.dirty=false;
+  if(store){try{store.setItem(LSKEY,JSON.stringify({roster:S.roster,game:S.game}))}catch(e){}}
+  render(); closeSheets();
+}
+byId("btnFiles").onclick=function(){byId("jsonBox").value=payload();openSheet("sheetFiles")};
+byId("btnQuickSave").onclick=saveFile;
+byId("btnSaveFile").onclick=saveFile;
+byId("btnLoadFile").onclick=function(){byId("fileInput").click()};
+byId("fileInput").onchange=function(e){
+  var f=e.target.files[0]; if(!f)return;
+  var r=new FileReader();
+  r.onload=function(){loadData(String(r.result));e.target.value=""};
+  r.readAsText(f);
+};
+byId("btnCopy").onclick=function(){
+  var t=byId("jsonBox"); t.readOnly=false; t.focus(); t.setSelectionRange(0,t.value.length);
+  try{document.execCommand("copy")}catch(e){}
+  t.readOnly=true;
+};
+byId("btnPaste").onclick=function(){
+  var t=byId("jsonBox"); t.readOnly=false; t.value=""; t.placeholder="הדבק כאן את הגיבוי ולחץ שוב";
+  if(t.value.trim())loadData(t.value); else t.focus();
+  t.onblur=function(){if(t.value.trim())loadData(t.value)};
+};
+
+byId("storeNote").textContent = store
+  ? "המשחק נשמר אוטומטית בדפדפן. שמירה לקובץ היא גיבוי שאפשר להעביר בין מכשירים."
+  : "שמירה אוטומטית לא זמינה כשהקובץ נפתח ישירות מהמכשיר (file://). שמור לקובץ לפני שסוגרים את הדף.";
+
+window.addEventListener("beforeunload",function(e){
+  if(S.game&&S.dirty&&!store){e.preventDefault();e.returnValue=""}
+});
+
+restore(); render();
+})();
+</script>
+<script>
+if("serviceWorker" in navigator && location.protocol!=="file:"){
+  window.addEventListener("load",function(){
+    navigator.serviceWorker.register("./sw.js").catch(function(){});
+  });
+}
+</script>
+</body>
+</html>
